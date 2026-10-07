@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: number-info-bot
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_IDS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: CACHE_TTL
+        value: "86400"
