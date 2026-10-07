@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+import asyncio
 import threading
 from datetime import datetime
 import requests
@@ -401,9 +402,13 @@ async def admin_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 # ================== BOT RUNNER (background thread) ==================
 def run_bot():
+    # थ्रेड के लिए नया इवेंट लूप बनाएं और सेट करें
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
     try:
         application = Application.builder().token(BOT_TOKEN).build()
-
+        
         application.add_handler(CommandHandler("start", start))
         application.add_handler(CommandHandler("admin", admin_cmd))
         application.add_handler(CallbackQueryHandler(handle_choice, pattern="^number$"))
@@ -411,10 +416,18 @@ def run_bot():
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, process_query))
 
         logger.info("🤖 Bot polling started...")
-        # stop_signals=None zaroori hai kyunki ye thread me chal raha hai
-        application.run_polling(allowed_updates=Update.ALL_TYPES, stop_signals=None)
+        application.run_polling(
+            allowed_updates=Update.ALL_TYPES,
+            stop_signals=None,  
+            close_loop=False,   
+        )
     except Exception:
         logger.exception("Bot crashed!")
+    finally:
+        try:
+            loop.close()
+        except Exception:
+            pass
 
 
 # ================== MAIN ==================
